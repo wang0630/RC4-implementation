@@ -1,27 +1,28 @@
 #include <iostream>
 #include <algorithm>
-// 0102030405060708090a0b0c0d0e0f10
-// ebb46227c6cc8b37641910833222772a
+
 using namespace std;
-// 128-bit key
-#define KEY_SIZE 16
+
 #define STATE_SIZE 256
 
 class Rc4 {
 public:
-    void run(const char* key_str) {
+    void run(const char* key_str, const int& bytesNeeded) {
+        this->KEY_SIZE = strlen(key_str) / 2;
         this->init(key_str);
-        for (unsigned char & i : this->finalStream) {
+
+        unsigned char finalStream[bytesNeeded];
+        for (unsigned char & i : finalStream) {
             i = this->getBits();
         }
-
-        this->printHex(this->finalStream, KEY_SIZE);
+        this->printHex(finalStream, bytesNeeded);
     }
 
 private:
+    // key size in byte
+    unsigned long KEY_SIZE;
     unsigned char key[STATE_SIZE] = {0};
     unsigned char state_arr[STATE_SIZE] = {0};
-    unsigned char finalStream[KEY_SIZE] = {0};
     pair<int, int> state_indexes;
 
     void hexString2Char(const char* s, unsigned char* buff) {
@@ -37,7 +38,6 @@ private:
 
     void printHex(unsigned char* test, int size) {
         for (int i = 0; i < size; i++) {
-//            if (i == size/2) printf("\n");
             printf("%.2x", test[i]);
         }
         cout << endl;
@@ -48,11 +48,8 @@ private:
         this->hexString2Char(key_str, this->key);
         for(int i = 0; i < STATE_SIZE; i++) {
             this->state_arr[i] = i;
-            this->key[i] = this->key[i % KEY_SIZE];
+            this->key[i] = this->key[i % this->KEY_SIZE];
         }
-
-//        this->printHex(this->state_arr, STATE_SIZE);
-//        this->printHex(this->key, STATE_SIZE);
 
         int j = 0;
         for(int i = 0; i < STATE_SIZE; i++) {
@@ -81,12 +78,13 @@ private:
 
 int main() {
     string key;
-
+    int bytesNeeded;
     cout << "Enter key: " << endl;
     cin >> key;
-
+    cout << "Enter bytes needed: " << endl;
+    cin >> bytesNeeded;
     auto rc4 = new Rc4();
-    rc4->run(key.c_str());
+    rc4->run(key.c_str(), bytesNeeded);
 
     return 0;
 }
